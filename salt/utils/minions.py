@@ -187,6 +187,14 @@ class CkMinions(object):
         else:
             self.acc = 'accepted'
 
+    def _check_nodegroup_minions(self, expr, greedy):  # pylint: disable=unused-argument
+        '''
+        Return minions found by looking at nodegroups
+        '''
+        return self._check_compound_minions(nodegroup_comp(expr, self.opts['nodegroups']),
+            DEFAULT_TARGET_DELIM,
+            greedy)
+
     def _check_glob_minions(self, expr, greedy):  # pylint: disable=unused-argument
         '''
         Return the minions found by looking via globs
@@ -789,6 +797,7 @@ class CkMinions(object):
                     # so this fn is permitted by all minions
                     if self.match_check(auth_list_entry, fun):
                         return True
+                continue
             if isinstance(auth_list_entry, dict):
                 if len(auth_list_entry) != 1:
                     log.info('Malformed ACL: {0}'.format(auth_list_entry))

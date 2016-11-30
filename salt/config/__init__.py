@@ -932,6 +932,14 @@ VALID_OPTS = {
     # Thin and minimal Salt extra modules
     'thin_extra_mods': str,
     'min_extra_mods': str,
+
+    # TLS/SSL connection options. This could be set to a dictionary containing arguments
+    # corresponding to python ssl.wrap_socket method. For details see:
+    # http://www.tornadoweb.org/en/stable/tcpserver.html#tornado.tcpserver.TCPServer
+    # http://docs.python.org/2/library/ssl.html#ssl.wrap_socket
+    # Note: to set enum arguments values like `cert_reqs` and `ssl_version` use constant names
+    # without ssl module prefix: `CERT_REQUIRED` or `PROTOCOL_SSLv23`.
+    'ssl': (dict, None),
 }
 
 # default configurations
@@ -1176,6 +1184,7 @@ DEFAULT_MINION_OPTS = {
     'proxy_password': '',
     'proxy_port': 0,
     'minion_jid_queue_hwm': 100,
+    'ssl': None,
 }
 
 DEFAULT_MASTER_OPTS = {
@@ -1448,11 +1457,12 @@ DEFAULT_MASTER_OPTS = {
     'cache': 'localfs',
     'thin_extra_mods': '',
     'min_extra_mods': '',
+    'ssl': None,
 }
 
 
 # ----- Salt Proxy Minion Configuration Defaults ----------------------------------->
-# Note that proxies use the same config path as regular minions.  DEFAULT_MINION_OPTS
+# Note DEFAULT_MINION_OPTS
 # is loaded first, then if we are setting up a proxy, the config is overwritten with
 # these settings.
 DEFAULT_PROXY_MINION_OPTS = {
@@ -1604,6 +1614,17 @@ def _validate_opts(opts):
            'required for this value')
     for key, val in six.iteritems(opts):
         if key in VALID_OPTS:
+            if val is None:
+                if VALID_OPTS[key] is None:
+                    continue
+                else:
+                    try:
+                        if None in VALID_OPTS[key]:
+                            continue
+                    except TypeError:
+                        # VALID_OPTS[key] is not iterable and not None
+                        pass
+
             if isinstance(val, VALID_OPTS[key]):
                 continue
 
@@ -3078,6 +3099,26 @@ def get_id(opts, cache_minion_id=False):
     return newid, is_ipv4
 
 
+def _update_ssl_config(opts):
+    '''
+    Resolves string names to integer constant in ssl configuration.
+    '''
+    if opts['ssl'] is None:
+        return
+    import ssl
+    for key, prefix in (('cert_reqs', 'CERT_'),
+                        ('ssl_version', 'PROTOCOL_')):
+        val = opts['ssl'].get(key)
+        if val is None:
+            continue
+        if not isinstance(val, string_types) or not val.startswith(prefix) or not hasattr(ssl, val):
+            message = 'SSL option \'{0}\' must be set to one of the following values: \'{1}\'.' \
+                    .format(key, '\', \''.join([val for val in dir(ssl) if val.startswith(prefix)]))
+            log.error(message)
+            raise salt.exceptions.SaltConfigurationError(message)
+        opts['ssl'][key] = getattr(ssl, val)
+
+
 def apply_minion_config(overrides=None,
                         defaults=None,
                         cache_minion_id=False,
@@ -3110,9 +3151,15 @@ def apply_minion_config(overrides=None,
         opts['id'] = _append_domain(opts)
 
     for directory in opts.get('append_minionid_config_dirs', []):
-        if directory in ['pki_dir', 'cachedir', 'extension_modules', 'pidfile']:
+        if directory in ['pki_dir', 'cachedir', 'extension_modules']:
             newdirectory = os.path.join(opts[directory], opts['id'])
             opts[directory] = newdirectory
+
+    # pidfile can be in the list of append_minionid_config_dirs, but pidfile
+    # is the actual path with the filename, not a directory.
+    if 'pidfile' in opts.get('append_minionid_config_dirs', []):
+        newpath_list = os.path.split(opts['pidfile'])
+        opts['pidfile'] = os.path.join(newpath_list[0], 'salt', opts['id'], newpath_list[1])
 
     if len(opts['sock_dir']) > len(opts['cachedir']) + 10:
         opts['sock_dir'] = os.path.join(opts['cachedir'], '.salt-unix')
@@ -3162,6 +3209,9 @@ def apply_minion_config(overrides=None,
 
     # Make sure hash_type is lowercase
     opts['hash_type'] = opts['hash_type'].lower()
+
+    # Check and update TLS/SSL configuration
+    _update_ssl_config(opts)
 
     return opts
 
@@ -3315,6 +3365,9 @@ def apply_master_config(overrides=None, defaults=None):
 
     # Make sure hash_type is lowercase
     opts['hash_type'] = opts['hash_type'].lower()
+
+    # Check and update TLS/SSL configuration
+    _update_ssl_config(opts)
 
     return opts
 

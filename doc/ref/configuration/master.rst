@@ -1044,6 +1044,32 @@ Do not disable this unless it is absolutely clear what this does.
     rotate_aes_key: True
 
 
+.. conf_master:: ssl
+
+``ssl``
+-------
+
+.. versionadded:: 2016.11.0
+
+Default: ``None``
+
+TLS/SSL connection options. This could be set to a dictionary containing
+arguments corresponding to python ``ssl.wrap_socket`` method. For details see
+`Tornado <http://www.tornadoweb.org/en/stable/tcpserver.html#tornado.tcpserver.TCPServer>`_
+and `Python <http://docs.python.org/2/library/ssl.html#ssl.wrap_socket>`_
+documentation.
+
+Note: to set enum arguments values like ``cert_reqs`` and ``ssl_version`` use
+constant names without ssl module prefix: ``CERT_REQUIRED`` or ``PROTOCOL_SSLv23``.
+
+.. code-block:: yaml
+
+    ssl:
+        keyfile: <path_to_keyfile>
+        certfile: <path_to_certfile>
+        ssl_version: PROTOCOL_TLSv1_2
+
+
 Master Module Management
 ========================
 
@@ -3011,7 +3037,7 @@ will have syndic servers(s) below it, set the "order_masters" setting to True.
 If this is a master that will be running a syndic daemon for passthrough the
 "syndic_master" setting needs to be set to the location of the master server.
 
-Do not not forget that, in other words, it means that it shares with the local minion
+Do not forget that, in other words, it means that it shares with the local minion
 its ID and PKI_DIR.
 
 .. conf_master:: order_masters

@@ -39,7 +39,7 @@ Default: ``salt``
 
     master: salt
 
-The option can can also be set to a list of masters, enabling
+The option can also be set to a list of masters, enabling
 :doc:`multi-master </topics/tutorials/multimaster>` mode.
 
 .. code-block:: yaml
@@ -107,12 +107,13 @@ to manage the minion's master setting from an execution module. By simply
 changing the algorithm in the module to return a new master ip/fqdn, restart
 the minion and it will connect to the new master.
 
+As of version 2016.11.0 this option can be set to ``disable`` and the minion
+will never attempt to talk to the master. This is useful for running a
+masterless minion daemon.
+
 .. code-block:: yaml
 
     master_type: disable
-
-If you just want to run a masterless minion, this can be set and the minion
-will never attempt to talk to the master.
 
 .. conf_minion:: max_event_size
 
@@ -1767,6 +1768,32 @@ blocked. If `cmd_whitelist_glob` is NOT SET, then all shell commands are permitt
       - 'cat /etc/fstab'
 
 
+.. conf_master:: ssl
+
+``ssl``
+-------
+
+.. versionadded:: 2016.11.0
+
+Default: ``None``
+
+TLS/SSL connection options. This could be set to a dictionary containing
+arguments corresponding to python ``ssl.wrap_socket`` method. For details see
+`Tornado <http://www.tornadoweb.org/en/stable/tcpserver.html#tornado.tcpserver.TCPServer>`_
+and `Python <http://docs.python.org/2/library/ssl.html#ssl.wrap_socket>`_
+documentation.
+
+Note: to set enum arguments values like ``cert_reqs`` and ``ssl_version`` use
+constant names without ssl module prefix: ``CERT_REQUIRED`` or ``PROTOCOL_SSLv23``.
+
+.. code-block:: yaml
+
+    ssl:
+        keyfile: <path_to_keyfile>
+        certfile: <path_to_certfile>
+        ssl_version: PROTOCOL_TLSv1_2
+
+
 Thread Settings
 ===============
 
@@ -2166,7 +2193,7 @@ List of git repositories to checkout and include in the winrepo
       - https://github.com/saltstack/salt-winrepo.git
 
 To specify a specific revision of the repository, prepend a commit ID to the
-URL of the the repository:
+URL of the repository:
 
 .. code-block:: yaml
 

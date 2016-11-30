@@ -554,7 +554,7 @@ def get_source_sum(file_name='',
         Optional file name being managed, for matching with
         :py:func:`file.extract_hash <salt.modules.file.extract_hash>`.
 
-        .. versionadded:: 2016.11.1
+        .. versionadded:: 2016.11.0
 
     source
         Source file, as used in :py:mod:`file <salt.states.file>` and other
@@ -574,7 +574,7 @@ def get_source_sum(file_name='',
         Specific file name to look for when ``source_hash`` refers to a remote
         file, used to disambiguate ambiguous matches.
 
-        .. versionadded:: 2016.11.1
+        .. versionadded:: 2016.11.0
 
     saltenv : base
         Salt fileserver environment from which to retrive the source_hash. This
@@ -2882,8 +2882,8 @@ def seek_read(path, size, offset):
         salt '*' file.seek_read /path/to/file 4096 0
     '''
     path = os.path.expanduser(path)
+    seek_fh = os.open(path, os.O_RDONLY)
     try:
-        seek_fh = os.open(path, os.O_RDONLY)
         os.lseek(seek_fh, int(offset), 0)
         data = os.read(seek_fh, int(size))
     finally:
@@ -2913,8 +2913,8 @@ def seek_write(path, data, offset):
         salt '*' file.seek_write /path/to/file 'some data' 4096
     '''
     path = os.path.expanduser(path)
+    seek_fh = os.open(path, os.O_WRONLY)
     try:
-        seek_fh = os.open(path, os.O_WRONLY)
         os.lseek(seek_fh, int(offset), 0)
         ret = os.write(seek_fh, data)
         os.fsync(seek_fh)
@@ -3817,7 +3817,7 @@ def extract_hash(hash_fn,
         takes precedence over both the ``file_name`` and ``source``. When it is
         not specified, ``file_name`` takes precedence over ``source``. This
         allows for better capability for matching hashes.
-    .. versionchanged:: 2016.11.1
+    .. versionchanged:: 2016.11.0
         File name and source URI matches are no longer disregarded when
         ``source_hash_name`` is specified. They will be used as fallback
         matches if there is no match to the ``source_hash_name`` value.

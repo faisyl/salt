@@ -124,7 +124,7 @@ Identifier matching
 
 Requisites match on both the ID Declaration and the ``name`` parameter.
 This means that, in the "Deploy server package" example above, a ``require``
-requisite would match with with ``Deploy server package`` *or* ``/usr/local/share/myapp.tar.xz``,
+requisite would match with ``Deploy server package`` *or* ``/usr/local/share/myapp.tar.xz``,
 so either of the following versions for "Extract server package" works:
 
 .. code-block:: yaml
@@ -412,7 +412,7 @@ if any of the watched states changes.
     ``cmd.run`` state has changes (which it always will, since the ``cmd.run``
     state includes the command results as changes).
 
-    It may semantically seem like the the ``cmd.run`` state should only run
+    It may semantically seem like the ``cmd.run`` state should only run
     when there are changes in the file state, but remember that requisite
     relationships involve one state watching another state, and a
     :ref:`requisite_in <requisites-onchanges-in>` does the opposite: it forces
@@ -783,7 +783,7 @@ this one, include a ``mod_run_check_cmd`` in the states file for the state.
 Retrying States
 ===============
 
-.. versionadded:: Carbon
+.. versionadded:: Nitrogen
 
 The retry option in a state allows it to be executed multiple times until a desired
 result is obtained or the maximum number of attempts have been made.
