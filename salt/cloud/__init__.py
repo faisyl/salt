@@ -361,11 +361,11 @@ class CloudClient(object):
             mapper.run_map(dmap)
         )
 
-    def destroy(self, names):
+    def destroy(self, names, **kwargs):
         '''
         Destroy the named VMs
         '''
-        mapper = salt.cloud.Map(self._opts_defaults(destroy=True))
+        mapper = salt.cloud.Map(self._opts_defaults(destroy=True, **kwargs))
         if isinstance(names, str):
             names = names.split(',')
         return salt.utils.simple_types_filter(
